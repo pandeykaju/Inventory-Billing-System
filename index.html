@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockFlow - College Inventory & Billing System</title>
+    <!-- FontAwesome Icons & Chart.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/print.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon"><i class="fas fa-boxes-stacked"></i></div>
+                <div>
+                    <div class="brand-title">Stock<span>Flow</span></div>
+                    <div class="brand-subtitle">Inventory & POS</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-view="dashboard">
+                    <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
+                </a>
+                <a class="nav-item" data-view="inventory">
+                    <i class="fas fa-box"></i> <span>Inventory & Items</span>
+                    <span class="nav-badge" id="nav-lowstock-badge" style="display:none;">0</span>
+                </a>
+                <a class="nav-item" data-view="billing">
+                    <i class="fas fa-file-invoice-dollar"></i> <span>Billing System</span>
+                </a>
+                <a class="nav-item" data-view="customers">
+                    <i class="fas fa-users"></i> <span>Customers</span>
+                </a>
+                <a class="nav-item" data-view="reports">
+                    <i class="fas fa-chart-line"></i> <span>Sales Reports</span>
+                </a>
+                <a class="nav-item" data-view="settings">
+                    <i class="fas fa-database"></i> <span>NoSQL Database</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar"><i class="fas fa-user-graduate"></i></div>
+                    Profile
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-wrapper">
+            <!-- Header Navbar -->
+            <header class="top-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="mobile-toggle" id="mobile-menu-toggle"><i class="fas fa-bars"></i></button>
+                    <div class="page-heading">
+                        <h2 id="top-title">Inventory & Billing Management System</h2>
+                    </div>
+                </div>
+
+                <div class="top-actions">
+                    <button class="icon-btn" id="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="App.switchView('billing')">
+                        <i class="fas fa-plus"></i> New Invoice
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <div class="content-area">
+
+                <!-- 1. DASHBOARD VIEW -->
+                <section id="view-dashboard" class="view-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-value" id="dash-total-revenue">₹0.00</div>
+                            </div>
+                            <div class="stat-icon primary"><i class="fas fa-indian-rupee-sign"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">Total Invoices</div>
+                                <div class="stat-value" id="dash-total-sales">0</div>
+                            </div>
+                            <div class="stat-icon success"><i class="fas fa-receipt"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">Products in Stock</div>
+                                <div class="stat-value" id="dash-total-products">0</div>
+                            </div>
+                            <div class="stat-icon warning"><i class="fas fa-cubes"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">Low Stock Alerts</div>
+                                <div class="stat-value" id="dash-low-stock-count">0</div>
+                            </div>
+                            <div class="stat-icon danger"><i class="fas fa-exclamation-triangle"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-chart-line" style="color:var(--primary);"></i> Revenue & Sales Trend</div>
+                            </div>
+                            <div style="height: 260px;">
+                                <canvas id="chart-sales-trend"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-pie-chart" style="color:var(--success);"></i> Stock by Category</div>
+                            </div>
+                            <div style="height: 260px;">
+                                <canvas id="chart-category-dist"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-clock-rotate-left"></i> Recent Transactions</div>
+                                <button class="btn btn-sm btn-outline" onclick="App.switchView('reports')">View All</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Invoice #</th>
+                                            <th>Customer</th>
+                                            <th>Amount</th>
+                                            <th>Payment</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-recent-sales-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title" style="color: var(--danger);"><i class="fas fa-triangle-exclamation"></i> Low Stock Alerts</div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Qty</th>
+                                            <th>Min</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-low-stock-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. INVENTORY & PRODUCT MANAGEMENT VIEW -->
+                <section id="view-inventory" class="view-section">
+                    <div class="card mb-4" style="margin-bottom: 1.25rem;">
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; flex: 1;">
+                                <input type="text" id="inventory-search-input" class="form-control" style="max-width: 280px;" placeholder="Search SKU or Name...">
+                                <select id="inventory-category-filter" class="form-select" style="max-width: 200px;"></select>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem; font-weight: 500;">
+                                    <input type="checkbox" id="inventory-lowstock-check"> Low Stock Only
+                                </label>
+                            </div>
+                            <button class="btn btn-primary" onclick="InventoryView.openAddModal()">
+                                <i class="fas fa-plus-circle"></i> Add New Product
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Product Name</th>
+                                        <th>Category</th>
+                                        <th>Buy Price</th>
+                                        <th>Sell Price</th>
+                                        <th>Stock Qty</th>
+                                        <th>Min Alert</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventory-table-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. BILLING SYSTEM (POS) VIEW -->
+                <section id="view-billing" class="view-section">
+                    <div class="pos-grid">
+                        <!-- Left Panel: Catalog -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-store" style="color: var(--primary);"></i> Select Products</div>
+                                <input type="text" id="pos-product-search" class="form-control" style="max-width: 240px;" placeholder="Search item or SKU...">
+                            </div>
+                            <div class="product-selector-grid" id="pos-product-grid"></div>
+                        </div>
+
+                        <!-- Right Panel: Cart & Receipt Computation -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title"><i class="fas fa-shopping-cart"></i> Invoice Details</div>
+                                <button class="btn btn-sm btn-outline" onclick="BillingView.clearCart()" style="color: var(--danger);">Clear</button>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Customer Selection</label>
+                                <select id="billing-customer-select" class="form-select"></select>
+                            </div>
+
+                            <div class="table-responsive cart-items-list">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Price</th>
+                                            <th>Qty</th>
+                                            <th>Total</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pos-cart-tbody"></tbody>
+                                </table>
+                            </div>
+
+                            <!-- Calculations Box -->
+                            <div class="billing-summary-box">
+                                <div class="summary-row">
+                                    <span>Subtotal:</span>
+                                    <span id="pos-subtotal">₹0.00</span>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <input type="number" id="pos-discount-input" class="form-control form-control-sm" placeholder="Discount" value="0" min="0">
+                                    <select id="pos-discount-type" class="form-select form-select-sm" style="width: 90px;">
+                                        <option value="percent">%</option>
+                                        <option value="fixed">₹</option>
+                                    </select>
+                                </div>
+                                <div class="summary-row" style="color: var(--danger);">
+                                    <span>Discount Amount:</span>
+                                    <span id="pos-discount-amount">-₹0.00</span>
+                                </div>
+                                <div class="summary-row" style="color: var(--primary); font-weight: 600;">
+                                    <span>Automatic 5% GST:</span>
+                                    <span id="pos-gst-amount">+₹0.00</span>
+                                </div>
+                                <div class="summary-row total">
+                                    <span>Grand Total:</span>
+                                    <span id="pos-grand-total">₹0.00</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label class="form-label">Payment Mode</label>
+                                <select id="pos-payment-mode" class="form-select">
+                                    <option value="Cash">Cash</option>
+                                    <option value="UPI">UPI / QR Code</option>
+                                    <option value="Credit Card">Credit / Debit Card</option>
+                                    <option value="Net Banking">Net Banking</option>
+                                </select>
+                            </div>
+
+                            <button class="btn btn-success" style="width: 100%; justify-content: center; padding: 0.85rem; font-size: 1rem; margin-top: 0.5rem;" onclick="BillingView.processCheckout()">
+                                <i class="fas fa-print"></i> Generate & Print Invoice
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. CUSTOMER MANAGEMENT VIEW -->
+                <section id="view-customers" class="view-section">
+                    <div class="card mb-4" style="margin-bottom: 1.25rem;">
+                        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                            <input type="text" id="customer-search-input" class="form-control" style="max-width: 300px;" placeholder="Search by name or phone...">
+                            <button class="btn btn-primary" onclick="CustomersView.openAddModal()">
+                                <i class="fas fa-user-plus"></i> Add New Customer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer Name</th>
+                                        <th>Phone</th>
+                                        <th>Email</th>
+                                        <th>Address</th>
+                                        <th>Total Purchased</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customer-table-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. SALES REPORTS VIEW -->
+                <section id="view-reports" class="view-section">
+                    <div class="card mb-4" style="margin-bottom: 1.25rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <label class="form-label" style="margin: 0;">Period:</label>
+                                <select id="report-date-filter" class="form-select" style="width: 180px;">
+                                    <option value="all">All Time</option>
+                                    <option value="today">Today</option>
+                                    <option value="7days">Last 7 Days</option>
+                                    <option value="30days">Last 30 Days</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-outline" onclick="ReportsView.exportCSV()">
+                                <i class="fas fa-file-csv"></i> Export CSV Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-value" id="report-total-revenue">₹0.00</div>
+                            </div>
+                            <div class="stat-icon primary"><i class="fas fa-wallet"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">5% GST Collected</div>
+                                <div class="stat-value" id="report-total-gst">₹0.00</div>
+                            </div>
+                            <div class="stat-icon success"><i class="fas fa-file-invoice"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">Discounts Given</div>
+                                <div class="stat-value" id="report-total-discounts">₹0.00</div>
+                            </div>
+                            <div class="stat-icon warning"><i class="fas fa-percent"></i></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-info">
+                                <div class="stat-label">Total Invoices</div>
+                                <div class="stat-value" id="report-total-invoices">0</div>
+                            </div>
+                            <div class="stat-icon danger"><i class="fas fa-receipt"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Date & Time</th>
+                                        <th>Customer</th>
+                                        <th>Subtotal</th>
+                                        <th>GST (5%)</th>
+                                        <th>Grand Total</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-sales-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 6. NOSQL DATABASE MANAGEMENT VIEW -->
+                <section id="view-settings" class="view-section">
+                    <div class="card" style="max-width: 650px; margin: 0 auto;">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fas fa-database" style="color: var(--primary);"></i> NoSQL Document Database Control</div>
+                        </div>
+
+                        <div style="line-height: 1.6; font-size: 0.95rem;">
+                            <p>This system uses a custom client-side <strong>NoSQL Document Store</strong> (persisted in browser storage). Data is stored in schema-less JSON document collections (<code>products</code>, <code>customers</code>, <code>invoices</code>, <code>categories</code>, <code>settings</code>).</p>
+                            
+                            <hr style="margin: 1.25rem 0; border: 0; border-top: 1px solid var(--border);">
+
+                            <h4 style="margin-bottom: 0.75rem;">Backup & Restore (JSON)</h4>
+                            <p class="text-muted" style="margin-bottom: 1rem;">Export the full database as a JSON document file or import a previous JSON document database backup.</p>
+
+                            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                                <button class="btn btn-primary" onclick="App.exportDatabase()">
+                                    <i class="fas fa-download"></i> Export JSON Backup
+                                </button>
+                                <label class="btn btn-outline" style="cursor: pointer; margin:0;">
+                                    <i class="fas fa-upload"></i> Restore JSON
+                                    <input type="file" id="import-json-file" accept=".json" style="display:none;" onchange="App.importDatabase(event)">
+                                </label>
+                            </div>
+
+                            <hr style="margin: 1.25rem 0; border: 0; border-top: 1px solid var(--border);">
+
+                            <h4 style="margin-bottom: 0.75rem; color: var(--danger);">Reset Data</h4>
+                            <p class="text-muted" style="margin-bottom: 1rem;">Reset all collections back to original college presentation sample data.</p>
+                            <button class="btn btn-danger" onclick="App.resetDatabase()">
+                                <i class="fas fa-rotate-left"></i> Reset to Sample Data
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL 1: ADD/EDIT PRODUCT -->
+    <div class="modal-overlay" id="modal-product">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="product-modal-title">Add New Product</h3>
+                <button class="modal-close" onclick="App.closeModal('modal-product')">&times;</button>
+            </div>
+            <form id="product-form">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">SKU / Barcode *</label>
+                        <input type="text" id="prod-sku" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Category *</label>
+                        <select id="prod-category" class="form-select" required></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Product Name *</label>
+                    <input type="text" id="prod-name" class="form-control" placeholder="e.g. Wireless Mouse" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Purchase Price (₹) *</label>
+                        <input type="number" step="0.01" id="prod-purchase-price" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Selling Price (₹) *</label>
+                        <input type="number" step="0.01" id="prod-selling-price" class="form-control" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Initial Stock *</label>
+                        <input type="number" id="prod-stock" class="form-control" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Low Stock Min *</label>
+                        <input type="number" id="prod-min-stock" class="form-control" value="5" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit</label>
+                        <input type="text" id="prod-unit" class="form-control" value="pcs">
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                    <button type="button" class="btn btn-outline" onclick="App.closeModal('modal-product')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: ADD CUSTOMER -->
+    <div class="modal-overlay" id="modal-customer">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Add New Customer</h3>
+                <button class="modal-close" onclick="App.closeModal('modal-customer')">&times;</button>
+            </div>
+            <form id="customer-form">
+                <div class="form-group">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" id="cust-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number *</label>
+                    <input type="tel" id="cust-phone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" id="cust-email" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <textarea id="cust-address" class="form-control" rows="2"></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem;">
+                    <button type="button" class="btn btn-outline" onclick="App.closeModal('modal-customer')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: CUSTOMER ORDER HISTORY -->
+    <div class="modal-overlay" id="modal-customer-history">
+        <div class="modal-box" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3 id="customer-history-title">Customer Order History</h3>
+                <button class="modal-close" onclick="App.closeModal('modal-customer-history')">&times;</button>
+            </div>
+            <div id="customer-history-body" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: INVOICE PRINT PREVIEW -->
+    <div class="modal-overlay" id="modal-invoice-print">
+        <div class="modal-box" style="max-width: 750px;">
+            <div class="modal-header no-print">
+                <h3>Tax Invoice Preview</h3>
+                <div>
+                    <button class="btn btn-primary btn-sm" onclick="BillingView.printCurrentInvoice()">
+                        <i class="fas fa-print"></i> Print Invoice
+                    </button>
+                    <button class="modal-close" onclick="App.closeModal('modal-invoice-print')">&times;</button>
+                </div>
+            </div>
+            <div id="printable-invoice-container"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JavaScript Files -->
+    <script src="js/db.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/inventory.js"></script>
+    <script src="js/billing.js"></script>
+    <script src="js/customers.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
